@@ -1,15 +1,20 @@
 #!/bin/bash
 #script to collect the SPADES assembled rRNAS and references in a common tree
 #script by Harald Gruber-Vodicka, 2020
+#thanks to N.Leisch for pushing this
 #this is work in progress and might not work as intended
+#
+#the script expects a folder with .tar.gz compressed phyloFlash 3.3 and above output files.
+#easiest way to generate the necessary input is phyloFlash.pl [...] with the -almosteverything switch
 
 #dependencies
-#phyloFlash input in tar.gz forma
+#phyloFlash output in .tar.gz format
 #vsearch - clustering
 #mafft - alignment
 #fasttree - tree calculation
 
 #expected commandline options are -p PROJECTNAME [defaut: pf_collection] and -c CPUs for computing [default:1]
+
 
 #post usage
 usage() {                                      # Function: Print a help message.
@@ -63,7 +68,7 @@ echo -e "Will use $project as prefix for all files"
 echo -e "\n"
 
 #MAIN
-#Extract all PF spades assembled 16S rRNA gene sequencens and the related SILVA dbhits (and possibly also emirge hits)
+#Extract all PF spades assembled SSU rRNA gene sequencens and the related SILVA dbhits (and possibly also emirge hits)
 echo -e "Extracting assembled SSUs\n"
 for i in *tar.gz; 
 	do  tar -xf $i ${i%phy*}spades_rRNAs.final.fasta; 
