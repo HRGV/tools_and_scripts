@@ -64,7 +64,7 @@ for n in *_f*.gz; do #this picks up the Forward read file name that is assumed t
 	mkdir /scratch/$USER/tmp.$JOB_ID/metabat -p;
 	cd /scratch/$USER/tmp.$JOB_ID/metabat;
 	bbmap.sh in=../filtered/${lib}_q2_ktrimmed_k31higher${higher}.fq.gz ref=../assemblies/${as}/${as}.contigs.fa outm=${lib}_on_${as}.bam outputunmapped=f nodisk=t unpigz=t pigz=t threads=24;
-	samtools sort --threads 24 outm=${lib}_on_${as}.bam -o ${lib}_on_${as}.sorted.bam ;
+	samtools sort --threads 24 ${lib}_on_${as}.bam -o ${lib}_on_${as}.sorted.bam ;
 	rm ${lib}_on_${as}.bam;
 	jgi_summarize_bam_contig_depths --outputDepth ${lib}_on_${as}.depth.txt ${lib}_on_${as}.sorted.bam;
 	rm ${lib}_on_${as}.sorted.bam;
