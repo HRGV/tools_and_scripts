@@ -23,6 +23,12 @@ lib=YOUR-Library-NAME;
 ####amount of reads - set to -1 to run with all reads, 100k is a good number for testing
 reads=100000;
 
+####variables that control the assembly names
+higher=3; #define kmer cutoff here 
+as=${lib}_all_kfilt${higher}_MH_21_141; # Megahit output file - rename for the parameters you are using
+as_sp=${lib}_all_kfilt${higher}_SPm_21_127; #SPAdes assembly name, rename for the parameters you are using
+
+
 ####create scratch folder
 mkdir /scratch/$USER/tmp.$JOB_ID -p; 
 
@@ -42,14 +48,12 @@ for n in *_f*.gz; do #this picks up the Forward read file name that is assumed t
 	bbduk.sh ref=/opt/extern/bremen/symbiosis/tools_HGV/adapters.fa ktrim=l minlength=36 mink=11 hdist=1 in=../$n in2=../${n%_f.fq.gz}_r.fq.gz out=${lib}_ktriml.fq.gz reads=$reads;
 	bbduk.sh ref=/opt/extern/bremen/symbiosis/tools_HGV/adapters.fa ktrim=r trimq=2 qtrim=rl minlength=36 mink=11 hdist=1 in=${lib}_ktriml.fq.gz interleaved=t out=${lib}_q2_ktrimmed.fq.gz;
    ####kmer filter reads into a folder ../library/filtered
-	higher=3; #define cutoff here 
 	mkdir  /scratch/$USER/tmp.$JOB_ID/filtered;
 	cd /scratch/$USER/tmp.$JOB_ID/filtered;
 	# - you can optionally find the cutoff for your particular library using bbnorms kmer histogram analysis support
 	# bbnorm.sh -Xmx400g in=../trimmed/${lib}_q2_ktrimmed.fq.gz hist=${lib}_all_khist.txt peaks=${lib}_all_khist_peaks.txt threads=12 passes=1 interleaved=t;
 	bbnorm.sh -Xmx400g in=../trimmed/${lib}_q2_ktrimmed.fq.gz lowbindepth=1 highbindepth=$higher outhigh=${lib}_q2_ktrimmed_k31higher${higher}.fq.gz passes=1 threads=24 interleaved=t; #cutoff is the highbindepth
    ####assemble with megahit into a folder ../library/assemblies
-	as=${lib}_all_kfilt${higher}_MH_21_141; #rename for the parameters you are using
 	mkdir /scratch/$USER/tmp.$JOB_ID/assemblies -p;
 	cd /scratch/$USER/tmp.$JOB_ID/assemblies;
 	megahit --k-min 21 --k-max 141 --k-step 20 -m 0.4 -t 24 --out-prefix $as --12 ../filtered/${lib}_q2_ktrimmed_k31higher${higher}.fq.gz -o $as;
@@ -68,10 +72,9 @@ for n in *_f*.gz; do #this picks up the Forward read file name that is assumed t
 	rm ${lib}_on_${as}.bam;
 	jgi_summarize_bam_contig_depths --outputDepth ${lib}_on_${as}.depth.txt ${lib}_on_${as}.sorted.bam;
 	rm ${lib}_on_${as}.sorted.bam;
-  	metabat2 -i ../assemblies/${as_sp}/scaffolds.fasta -a ${lib}_on_${as_sp}.depth.txt -o ./bin_${as} -t 24	
+  	metabat2 -i ../assemblies/${as}/${as}.contigs.fa -a ${lib}_on_${as}.depth.txt -o ./bin_${as} -t 24	
    ####assemble with spades into a folder ../library/assemblies
 	cd /scratch/$USER/tmp.$JOB_ID/assemblies;
-	as_sp=${lib}_all_kfilt${higher}_SPm_21_127; #rename 
 	spades.py -k 21,33,55,77,99,127 -m 400 -t 24 -o $as_sp --12 ../filtered/${lib}_q2_ktrimmed_k31higher${higher}.fq.gz; #use -meta switch for communities with more than 1 bug!
    ####fastgfish spades assembly into ../library/fastgfish
 	cd /scratch/$USER/tmp.$JOB_ID/fastgfish;
@@ -120,4 +123,3 @@ if [ "$?" -eq "0" ] #checks status of rsync - $? gives the error code of the las
 fi
 echo "job finished: "
 date
-
