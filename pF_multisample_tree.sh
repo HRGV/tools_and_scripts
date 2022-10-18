@@ -15,7 +15,7 @@
 
 #expected commandline options are -p PROJECTNAME [defaut: pf_collection] and -c CPUs for computing [default:1]
 
-
+#subs
 #post usage
 usage() {                                      # Function: Print a help message.
   echo -e "\nUsage: $0 [ -p PROJECTNAME ] [ -c CPUs ]" 1>&2 
@@ -24,39 +24,26 @@ exit_abnormal() {                              # Function: Exit with error.
   usage
   exit 1
 }
+#variables
+cpus=4
+
 
 #get options from command line
 #the options are the project name and the number of CPUs to be used.
-while getopts ":p:c:" options; do              # Loop: Get the next option;
+while getopts ":p:c:" opts; do              # Loop: Get the next option;
                                                # use silent error checking;
-                                               # options n and t take arguments.
-  case "${options}" in                         # 
+                                               # options p and c take arguments.
+  case $opts in                         # 
     p)                                         # If the option is c,
+      echo "argument -p calles with parameter $OPTARG"
       project=${OPTARG}                        # set $project to specified value.
-      re_isaword='^[a-zA-Z_]+$'                 # Regex: match whole words only, a-z and AZ as well as - and _ allowed
-      if ! [[ $project =~ $re_isaword ]] ; then   # if $TIMES not a whole number:
-       echo -e "\n\e[91mError\e[0m: project must be a single word, only a-z, A-Z and _ allowed."
-      	exit_abnormal
-        exit 1
-      fi
-	;;
+      	;;
     c)                                         # If the option is c,
-      cpus=${OPTARG}                          # Set $cpus to specified value.
-      re_isanum='^[0-9]+$'                     # Regex: match whole numbers only
-      if ! [[ $cpus =~ $re_isanum ]] ; then   # if $TIMES not a whole number:
-        echo -e "\n\e[91mError\e[0m: CPUs must be a positive, whole number."
-        exit_abnormal
-        exit 1
-      elif [ $cpus -eq "0" ]; then            # If it's zero:
-        echo -e "\n\e[91mError\e[0m: CPUs must be greater than zero."
-        exit_abnormal                          # Exit abnormally.
-      fi
-      ;;
-    :)                                         # If expected argument omitted:
-      echo -e "\n\e[91mError\e[0m: -${OPTARG} requires an argument."
-      exit_abnormal                            # Exit abnormally.
-      ;;
-    *)                                         # If unknown (any other) option:
+       echo "argument -c calles with parameter $OPTARG"
+       cpus=${OPTARG}                          # Set $cpus to specified value.
+        ;;
+    *)                                         # If expected argument omitted:
+      echo -e "invalid command"
       exit_abnormal                            # Exit abnormally.
       ;;
   esac
